@@ -7,10 +7,10 @@ class static:
     notContUS = ["GU","PR","FM","AS","VI","AK","HI",'AE']
 
     kwords = [
-            # these are my personal terms of interest
+            # default values
            'microbiology', 'botany', 'mycology', 'fungus', 'fungi',
             'microbe', 'microbes','biosystems', 'biosystem', 'rhizobia',
-            'mycorrhizae', 'mycorrhizal', 'microbiome', 'mycobiome',
+            'mycorrhizae', 'mycorrhizal', 'microbiome', #'mycobiome',
             'phytopathology', 'pathology','dna','evolution', 'genetics',
             'ecology','bioinformatics', 'plant', 'fungal', 'plants',
             'herbarium','herbaria','geospatial','gis'
@@ -24,7 +24,6 @@ class static:
         self.kwords = sorted(self.kwords)
 
     def __userInput(self):
-
         # optionally takes user selected keword terms
         print 'Enter the terms you want to search for, or just press return for default terms.'
         arr = []

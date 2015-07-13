@@ -9,9 +9,10 @@ class dataPrep():
     def __init__(self,table,df):
         self.states = table.keys()
         self.stateCount = table.values()
-        self.stateList = df.columns.tolist()
+        self.stateList = sorted(df.columns.tolist()) #new
 
     def colorChooser(self,c):
+        # selects colors to use for heatmap
         colors = [
                 "#75968f", "#a5bab7", "#c9d9d3", "#e2e2e2", "#dfccce",
                 "#ddb7b1", "#cc7878", "#933b41", "#550b1d", "#ffffff"
@@ -44,9 +45,10 @@ class dataPlots(dataPrep):
 
     def __init__(self,table,df):
         dataPrep.__init__(self,table,df)
-        self.matrix = df
+        self.matrix = df.sort_index()
 
     def stateBarPlot(self):
+        # plots the number of awards for each contiguous state
         stateBarPlot = Bar(self.stateCount,cat=self.states,tools='',
             title="Number of Awards per State",
            xlabel='States',ylabel='Awards per State',
@@ -55,6 +57,7 @@ class dataPlots(dataPrep):
         show(stateBarPlot)
 
     def __heatmapPrep(self):
+        # prepares data for use in heatmap
         plotVals = []
         plotClrs = []
         plotKwds = []
@@ -76,6 +79,7 @@ class dataPlots(dataPrep):
 
 
     def heatmap(self):
+        # plots heatmap of term counts
         plotData = self.__heatmapPrep()
         source = ColumnDataSource(
         data=dict(
@@ -95,11 +99,11 @@ class dataPlots(dataPrep):
             ]
         )
 
-        p1 = figure(width=800,height=400,tools=[hover],outline_line_color=None)
-        p1.rect('states','keywords', 1,1, source=source,
+        heatmap = figure(width=800,height=400,tools=[hover],outline_line_color=None)
+        heatmap.rect('states','keywords', 1,1, source=source,
             x_range=self.stateList, y_range=(self.matrix.index.tolist())[::-1],
             color='colors', line_color=None,
             title="Keywords by state",tools=[hover],
             grid_line_color=None,axis_line_color = None,major_tick_line_color = None
             )
-        show(p1)
+        show(heatmap)

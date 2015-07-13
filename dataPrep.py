@@ -8,6 +8,7 @@ awards2013 = pd.read_csv('Data/exportAwards-2013.csv')
 awards2014 = pd.read_csv('Data/exportAwards-2014.csv')
 
 def awardTrim(df,year):
+    # makes subset of data frame and adds column for year
     terms = ['Primary State','Abstract at Time of Award']
     df = df[terms]
 

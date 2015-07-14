@@ -1,4 +1,5 @@
 import pandas as pd
+import re
 
 # import all of the datasets
 awards2010 = pd.read_csv('Data/exportAwards-2010.csv')
@@ -9,7 +10,7 @@ awards2014 = pd.read_csv('Data/exportAwards-2014.csv')
 
 def awardTrim(df,year):
     # makes subset of data frame and adds column for year
-    terms = ['Doing Business as Name','Estimated Total Award Amount','Primary State','Abstract at Time of Award']
+    terms = ['Doing Business As Name','Estimated Total Award Amount','Primary State','Abstract at Time of Award']
     df = df[terms]
 
     l = []
@@ -19,12 +20,17 @@ def awardTrim(df,year):
 
     return df
 
+def cleanAmount(df):
+    #cleans up the award amount field
+    df['Estimated Total Award Amount'] = map(lambda x: re.sub('[^\d]','',x),df['Estimated Total Award Amount'])
+    return(df)
+
 #trim the csvs
-awards2010 = awardTrim(awards2010,2010).dropna()
-awards2011 = awardTrim(awards2011,2011).dropna()
-awards2012 = awardTrim(awards2012,2012).dropna()
-awards2013 = awardTrim(awards2013,2013).dropna()
-awards2014 = awardTrim(awards2014,2014).dropna()
+awards2010 = cleanAmount(awardTrim(awards2010,2010).dropna())
+awards2011 = cleanAmount(awardTrim(awards2011,2011).dropna())
+awards2012 = cleanAmount(awardTrim(awards2012,2012).dropna())
+awards2013 = cleanAmount(awardTrim(awards2013,2013).dropna())
+awards2014 = cleanAmount(awardTrim(awards2014,2014).dropna())
 
 #export the csvs
 awards2010.to_csv('awards2010.csv',index=False)

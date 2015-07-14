@@ -20,11 +20,11 @@ def awardTrim(df,year):
     return df
 
 #trim the csvs
-awards2010 = awardTrim(awards2010,2010)
-awards2011 = awardTrim(awards2011,2011)
-awards2012 = awardTrim(awards2012,2012)
-awards2013 = awardTrim(awards2013,2013)
-awards2014 = awardTrim(awards2014,2014)
+awards2010 = awardTrim(awards2010,2010).dropna()
+awards2011 = awardTrim(awards2011,2011).dropna()
+awards2012 = awardTrim(awards2012,2012).dropna()
+awards2013 = awardTrim(awards2013,2013).dropna()
+awards2014 = awardTrim(awards2014,2014).dropna()
 
 #export the csvs
 awards2010.to_csv('awards2010.csv',index=False)

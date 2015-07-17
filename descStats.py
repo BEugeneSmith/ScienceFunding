@@ -63,11 +63,11 @@ class AbstractExtract(static):
                 matches.append(term)
         return(matches)
 
-class dfProcessor(static):
-    def __init__(self,df):
-        self.name = df
+class dfAbstractProcessor(static):
+    def __init__(self,dfName):
+        self.name = dfName
         static.__init__(self)
-        self.__df = pd.read_csv(df)
+        self.__df = pd.read_csv(dfName)
         self.__cleanDF = self.__process()
         self.freqTable = self.__stateFreq()
         self.__transformPrep()
@@ -126,3 +126,84 @@ class dfProcessor(static):
             os.makedirs('awardMatrices/')
 
         self.transDF.to_csv(newName)
+
+class dfFundsProcessor(static):
+
+    def __init__(self,dfName):
+        self.name = dfName
+        static.__init__(self)
+        self.__df = pd.read_csv(dfName)
+        self.__cleanDF = self.__process()
+        self.__fundMatrixPrep()
+        self.fundMatrix = self.__fundMatrixTransform()
+        self.__valueBin()
+
+    def __process(self):
+        # creates column with arrays of extracted terms
+        self.__df['AbstractTokens'] = map(lambda x:
+            AbstractExtract(x,self.kwords).matches, self.__df['Abstract at Time of Award'])
+        reducedDF = self.__df[self.__df['AbstractTokens'].map(lambda x: len(x)>0)]
+        reducedDF.drop(["Abstract at Time of Award"],inplace=True,axis=1)
+        return(reducedDF.reset_index().drop('index', axis=1))
+
+    def __fundMatrixPrep(self):
+        # acts on existing self.__cleanDF to add term counts
+        for kword in self.kwords: self.__cleanDF[kword] = 0
+        for i in self.__cleanDF.index:
+            for term in self.__cleanDF.loc[i,"AbstractTokens"]:
+                if term == self.__cleanDF.loc[i,"AbstractTokens"][-1]: break
+                self.__cleanDF.loc[i,term]+=self.__cleanDF.loc[i,'Estimated Total Award Amount']
+
+    def __fundMatrixTransform(self):
+        # subset the dataframe to make matrix of counts
+        matrix = self.__cleanDF.drop(['Year','AbstractTokens','Estimated Total Award Amount'],1)
+        matrix = matrix.groupby("Primary State").sum()
+        for x in self.notContUS:
+            try:
+                matrix = matrix.drop(x)
+            except:
+                next
+
+        return(matrix.T)
+
+    def __maxExtract(self):
+        # extracts maximum value from dataframe
+        totals = []
+        for i in self.fundMatrix.index:
+            for j in self.fundMatrix.columns:
+                totals.append(self.fundMatrix.loc[i,j])
+        maxVal = max(totals)
+
+        return(maxVal)
+
+    def __valueBin(self):
+        mx = self.__maxExtract()
+        matrix = self.fundMatrix
+        splt = mx/9 # we have only nine colors to choose from
+
+        for i in matrix.index:
+            for j in matrix.columns:
+                val = matrix.loc[i,j]
+                for k in range(10):
+                    binVal = splt * k
+                    if matrix.loc[i,j] == mx:
+                        matrix.loc[i,j] = 9
+                        break
+                    elif val <= binVal:
+                        matrix.loc[i,j] = k
+                        break
+
+
+    def exportMatrix(self):
+        # exports matrix of term counts
+        abspath = os.path.abspath(self.name)
+        filename = re.search('/(\w*\.csv)$',abspath)
+        newName = 'fundMatrices/'+filename.group(1)
+
+        if os.path.isdir('fundMatrices/') == False:
+            os.makedirs('fundMatrices/')
+
+        self.fundMatrix.to_csv(newName)
+
+class matrixCollate:
+    pass

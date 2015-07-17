@@ -71,7 +71,9 @@ class dfAbstractProcessor(static):
         self.__cleanDF = self.__process()
         self.freqTable = self.__stateFreq()
         self.__transformPrep()
-        self.transDF = self.__transform()
+        self.transDF = self.__transform() # not normailzed matrix
+        self.maxAbstract = self.__maxExtract()
+        self.normDF = self.__valueNormalize()
 
     def __process(self):
         # creates column with arrays of extracted terms
@@ -106,7 +108,7 @@ class dfAbstractProcessor(static):
 
     def __transform(self):
         # subset the dataframe to make matrix of counts
-        matrix = self.__cleanDF.drop(['Year','AbstractTokens'],1)
+        matrix = self.__cleanDF.drop(['Year','AbstractTokens','Estimated Total Award Amount'],1)
         matrix = matrix.groupby("Primary State").sum()
         for x in self.notContUS:
             try:
@@ -115,6 +117,25 @@ class dfAbstractProcessor(static):
                 next
 
         return(matrix.T)
+
+    def __maxExtract(self):
+        # extracts maximum value from dataframe
+        totals = []
+        for i in self.transDF.index:
+            for j in self.transDF.columns:
+                totals.append(self.transDF.loc[i,j])
+        maxVal = max(totals)
+
+        return(maxVal)
+
+    def __valueNormalize(self):
+        mx = self.maxAbstract
+        matrix = self.transDF
+
+        for i in matrix.index:
+            for j in matrix.columns:
+                matrix.loc[i,j] = float(matrix.loc[i,j])/mx
+        return(matrix)
 
     def exportMatrix(self):
         # exports matrix of term counts
@@ -136,7 +157,8 @@ class dfFundsProcessor(static):
         self.__cleanDF = self.__process()
         self.__fundMatrixPrep()
         self.fundMatrix = self.__fundMatrixTransform()
-        self.__valueBin()
+        self.fundMax = self.__maxExtract()
+        self.__valueNormalize()
 
     def __process(self):
         # creates column with arrays of extracted terms
@@ -176,22 +198,13 @@ class dfFundsProcessor(static):
 
         return(maxVal)
 
-    def __valueBin(self):
-        mx = self.__maxExtract()
+    def __valueNormalize(self):
+        mx = self.fundMax
         matrix = self.fundMatrix
-        splt = mx/9 # we have only nine colors to choose from
 
         for i in matrix.index:
             for j in matrix.columns:
-                val = matrix.loc[i,j]
-                for k in range(10):
-                    binVal = splt * k
-                    if matrix.loc[i,j] == mx:
-                        matrix.loc[i,j] = 9
-                        break
-                    elif val <= binVal:
-                        matrix.loc[i,j] = k
-                        break
+                matrix.loc[i,j] = float(matrix.loc[i,j])/mx
 
 
     def exportMatrix(self):

@@ -9,7 +9,7 @@ class dataPrep():
     def __init__(self,table,df):
         self.states = table.keys()
         self.stateCount = table.values()
-        self.stateList = sorted(df.columns.tolist()) #new
+        self.stateList = sorted(df.columns.tolist())
 
     def colorChooser(self,c):
         # selects colors to use for heatmap
@@ -18,34 +18,34 @@ class dataPrep():
                 "#ddb7b1", "#cc7878", "#933b41", "#550b1d", "#ffffff"
                 ]
 
-        c = int(c)
-        if c == 0:
+        if c == 0.0:
             return colors[0]
-        elif c in range(1,6):
+        elif c <= 0.005:
             return colors[1]
-        elif c in range(6,11):
+        elif c <= 0.01:
             return colors[2]
-        elif c in range(11,25):
+        elif c <= 0.025:
             return colors[3]
-        elif c in range(25,50):
+        elif c <= 0.05:
             return colors[4]
-        elif c in range(50,100):
+        elif c <= 0.1:
             return colors[5]
-        elif c in range(100, 250):
+        elif c <= 0.25:
             return colors[6]
-        elif c in range(250,500):
+        elif c <= 0.5:
             return colors[7]
-        elif c in range(500,1000):
+        elif c <= 0.75:
             return colors[8]
-        elif c >= 1000:
+        elif c >= 1:
             return colors[9]
 
 
 class dataPlots(dataPrep):
 
-    def __init__(self,table,df):
+    def __init__(self,table,df,mx):
         dataPrep.__init__(self,table,df)
         self.matrix = df.sort_index()
+        self.maxVal = mx
 
     def stateBarPlot(self):
         # plots the number of awards for each contiguous state
@@ -58,16 +58,17 @@ class dataPlots(dataPrep):
 
     def __heatmapPrep(self):
         # prepares data for use in heatmap
+
         plotVals = []
         plotClrs = []
         plotKwds = []
         plotStes = []
 
-        for i in range(len(self.matrix.index.tolist())): #odd line
+        for i in range(len(self.matrix)):
             for j in self.stateList:
-                plotVals.append(self.matrix.ix[i,j])
                 val = self.matrix.ix[i,j]
                 plotClrs.append(self.colorChooser(val))
+                plotVals.append(int(val*self.maxVal))
                 plotKwds.append(i)
                 plotStes.append(self.stateList.index(j))
         return {

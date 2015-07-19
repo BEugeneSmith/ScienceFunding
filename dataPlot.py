@@ -1,6 +1,7 @@
 from bokeh.plotting import show,output_notebook,ColumnDataSource,figure,hplot
 from bokeh.models import HoverTool
 from bokeh.charts import Bar
+from numpy import pi
 output_notebook()
 
 
@@ -71,26 +72,28 @@ class dataPlots(dataPrep):
                 plotVals.append(int(val*self.maxVal))
                 plotKwds.append(i)
                 plotStes.append(self.stateList.index(j))
+                
         return {
             'Vals':plotVals,
             'Clrs':plotClrs,
             'Kwds':plotKwds,
             'Stes':plotStes,
-            }
+        }
+    
 
 
     def heatmap(self):
-        # plots heatmap of term counts
+        # plots heatmap
         plotData = self.__heatmapPrep()
         source = ColumnDataSource(
-        data=dict(
-            states=plotData['Stes'],
-            keywords=plotData['Kwds'],
-            colors=plotData['Clrs'],
-            values=plotData['Vals'],
-            hStates=map(lambda x: self.stateList[x],plotData['Stes']),
-            hKwords=map(lambda x: self.matrix.index.tolist()[x],plotData['Kwds'])
-            )
+            data=dict(
+                states=plotData['Stes'],
+                keywords=plotData['Kwds'],
+                colors=plotData['Clrs'],
+                values=plotData['Vals'],
+                hStates=map(lambda x: self.stateList[x],plotData['Stes']),
+                hKwords=map(lambda x: self.matrix.index.tolist()[x],plotData['Kwds'])
+                )
         )
 
         hover = HoverTool(
@@ -100,11 +103,18 @@ class dataPlots(dataPrep):
             ]
         )
 
-        heatmap = figure(width=800,height=400,tools=[hover],outline_line_color=None)
-        heatmap.rect('states','keywords', 1,1, source=source,
-            x_range=self.stateList, y_range=(self.matrix.index.tolist())[::-1],
+        # somewhere around here we're losing one column on each axis
+        
+        heatmap = figure(width=900,height=450,tools=[hover],outline_line_color=None,
+                         x_range=self.stateList, y_range=(self.matrix.index.tolist()),
+                        )
+        
+        heatmap.axis.major_label_standoff = 0
+        heatmap.xaxis.major_label_orientation = pi/3
+        heatmap.rect('states','keywords',1,1, source=source,
             color='colors', line_color=None,
             title="Keywords by state",tools=[hover],
+            x_range=self.stateList, y_range=(self.matrix.index.tolist()),
             grid_line_color=None,axis_line_color = None,major_tick_line_color = None
             )
         show(heatmap)

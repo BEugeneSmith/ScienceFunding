@@ -25,7 +25,7 @@ class static:
 
     def __userInput(self):
         # optionally takes user selected keword terms
-        print 'Enter the terms you want to search for, or just press return for default terms.'
+        # print 'Enter the terms you want to search for, or just press return for default terms.'
         arr = []
         term = raw_input()
 

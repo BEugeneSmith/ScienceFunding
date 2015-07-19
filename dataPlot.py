@@ -1,4 +1,4 @@
-from bokeh.plotting import show,output_notebook,ColumnDataSource,figure
+from bokeh.plotting import show,output_notebook,ColumnDataSource,figure,hplot
 from bokeh.models import HoverTool
 from bokeh.charts import Bar
 output_notebook()

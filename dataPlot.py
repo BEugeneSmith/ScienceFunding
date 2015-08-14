@@ -1,4 +1,4 @@
-from bokeh.plotting import show,output_notebook,ColumnDataSource,figure,hplot
+from bokeh.plotting import show,output_notebook,ColumnDataSource,figure,vplot
 from bokeh.models import HoverTool
 from bokeh.charts import Bar
 from numpy import pi
@@ -11,6 +11,7 @@ class dataPrep():
         self.states = table.keys()
         self.stateCount = table.values()
         self.stateList = sorted(df.columns.tolist())
+        self.df = df
 
     def colorChooser(self,c):
         # selects colors to use for heatmap
@@ -44,7 +45,7 @@ class dataPrep():
 class dataPlots(dataPrep):
 
     def __init__(self,table,df,mx):
-        dataPrep.__init__(self,table,df)
+        dataPrep.__init__(self,table,df) #what was mx?
         self.matrix = df.sort_index()
         self.maxVal = mx
 
@@ -53,68 +54,67 @@ class dataPlots(dataPrep):
         stateBarPlot = Bar(self.stateCount,cat=self.states,tools='',
             title="Number of Awards per State",
            xlabel='States',ylabel='Awards per State',
-           width=1000)
+           width=800,height=400)
 
         show(stateBarPlot)
 
     def __heatmapPrep(self):
         # prepares data for use in heatmap
+        self.states = self.df.columns.tolist()
+        self.keywords = self.df.index.tolist()
 
-        plotVals = []
-        plotClrs = []
-        plotKwds = []
-        plotStes = []
+        # tchange to heatmap plot
+        state = []
+        kword = []
+        color = []
+        value = []
+        for k in self.keywords:
+            for s in self.states:
+                state.append(s)
+                kword.append(k)
+                val = self.df[s][k]
+                color.append(self.colorChooser(val))
+                value.append(int(val*self.maxVal))
 
-        for i in range(len(self.matrix)):
-            for j in self.stateList:
-                val = self.matrix.ix[i,j]
-                plotClrs.append(self.colorChooser(val))
-                plotVals.append(int(val*self.maxVal))
-                plotKwds.append(i)
-                plotStes.append(self.stateList.index(j))
-                
-        return {
-            'Vals':plotVals,
-            'Clrs':plotClrs,
-            'Kwds':plotKwds,
-            'Stes':plotStes,
-        }
-    
-
-
-    def heatmap(self):
-        # plots heatmap
-        plotData = self.__heatmapPrep()
         source = ColumnDataSource(
             data=dict(
-                states=plotData['Stes'],
-                keywords=plotData['Kwds'],
-                colors=plotData['Clrs'],
-                values=plotData['Vals'],
-                hStates=map(lambda x: self.stateList[x],plotData['Stes']),
-                hKwords=map(lambda x: self.matrix.index.tolist()[x],plotData['Kwds'])
-                )
+                state=state,
+                kword=kword,
+                color=color,
+                value=value,
+            )
         )
 
+        return(source)
+
+
+
+    def heatmap(self,name):
+        # plots heatmap
+        source = self.__heatmapPrep()
+
         hover = HoverTool(
-            tooltips = [
-                ("awards","@values"),
-                ("state,term","@hStates,@hKwords")
+        tooltips = [
+            ("state,term","@state,@kword"),
+            ("value","@value"),
             ]
         )
 
-        # somewhere around here we're losing one column on each axis
-        
-        heatmap = figure(width=900,height=450,tools=[hover],outline_line_color=None,
-                         x_range=self.stateList, y_range=(self.matrix.index.tolist()),
-                        )
-        
-        heatmap.axis.major_label_standoff = 0
-        heatmap.xaxis.major_label_orientation = pi/3
-        heatmap.rect('states','keywords',1,1, source=source,
-            color='colors', line_color=None,
-            title="Keywords by state",tools=[hover],
-            x_range=self.stateList, y_range=(self.matrix.index.tolist()),
-            grid_line_color=None,axis_line_color = None,major_tick_line_color = None
-            )
-        show(heatmap)
+        p = figure(
+            tools=[hover],
+            plot_width=900, plot_height=450,
+            # x_axis_location="above",
+            x_range=self.states, y_range=list(reversed(self.keywords)),
+            title=name
+        )
+
+        p.rect('state', 'kword', 1, 1, source=source, color='color', line_color=None)
+
+
+        p.grid.grid_line_color = None
+        p.axis.axis_line_color = None
+        p.axis.major_tick_line_color = None
+        p.axis.major_label_standoff = 0
+        p.legend
+        p.xaxis.major_label_orientation = pi/3
+        show(p)

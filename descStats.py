@@ -1,6 +1,7 @@
 import pandas as pd
 import re
 import os
+pd.options.mode.chained_assignment= None
 
 class static:
 

@@ -73,7 +73,7 @@ class dfAbstractProcessor(static):
         self.freqTable = self.__stateFreq()
         self.__transformPrep()
         self.transDF = self.__transform() # not normailzed matrix
-        self.maxAbstract = self.__maxExtract()
+        self.abstractMax = self.__maxExtract()
         self.normDF = self.__valueNormalize()
 
     def __process(self):
@@ -130,7 +130,8 @@ class dfAbstractProcessor(static):
         return(maxVal)
 
     def __valueNormalize(self):
-        mx = self.maxAbstract
+        # normalize values in a given array
+        mx = self.abstractMax
         matrix = self.transDF
 
         for i in matrix.index:
@@ -200,6 +201,7 @@ class dfFundsProcessor(static):
         return(maxVal)
 
     def __valueNormalize(self):
+        # normalize values in a given array
         mx = self.fundMax
         matrix = self.fundMatrix
 
@@ -220,4 +222,55 @@ class dfFundsProcessor(static):
         self.fundMatrix.to_csv(newName)
 
 class matrixCollate:
+    def __init__(self,df1,df2,df1mx,df2mx):
+        self.df1 = df1
+        self.df2 = df2
+        self.df1mx = df1mx
+        self.df2mx = df2mx
+
+        if len(df1) != len(df2) or df1.size != df2.size:
+            pass
+
+        # denormalized dataframes
+        self.__df1denorm = self.__dfDenormalize(self.df1,self.df1mx)
+        self.__df2denorm = self.__dfDenormalize(self.df2,self.df2mx)
+
+        # create new dataframe
+        self.collDF = self.__collate()
+        self.rateDF = self.__rateCalc()
+
+
+    def __dfDenormalize(self,df,mx):
+        # normalizes dataframes
+        for i in df.columns.tolist():
+            for j in df.index.tolist():
+                df.loc[j,i] = (mx * df.loc[j,i])
+        return(df)
+
+    def __collatePrep(self,df):
+        # creates new empty dataframe
+        newDF = pd.DataFrame(
+            index = df.index,
+            columns = df.columns
+        )
+        return(newDF)
+
+    def __collate(self):
+        newDF = self.__collatePrep(self.df1)
+        for i in newDF.columns.tolist():
+            for j in newDF.index.tolist():
+                vals = [self.__df1denorm.loc[j,i],self.__df2denorm.loc[j,i]]
+                newDF.loc[j,i] = vals
+        return(newDF)
+
+    def __rateCalc(self):
+        newDF = self.__collatePrep(self.df1)
+        for i in newDF.columns.tolist():
+            for j in newDF.index.tolist():
+                val = self.__df2denorm.loc[j,i]/self.__df1denorm.loc[j,i]
+                newDF.loc[j,i] = vals
+        return(newDF)
+
+class rateCalc:
+    # this will extract the ratio of funds to number of awards.
     pass

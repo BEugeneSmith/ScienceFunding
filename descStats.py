@@ -19,9 +19,9 @@ class static:
 
     def __init__(self):
         # assigns and sorts either the new keyword set or keeps the old one
-        userTerms = self.__userInput()
-        if userTerms != []:
-            self.kwords = userTerms
+        # userTerms = self.__userInput()
+        # if userTerms != []:
+        #    self.kwords = userTerms
         self.kwords = sorted(self.kwords)
 
     def __userInput(self):
@@ -150,7 +150,7 @@ class dfAbstractProcessor(static):
 
         self.transDF.to_csv(newName)
 
-class dfFundsProcessor(static):
+class dfFundProcessor(static):
 
     def __init__(self,dfName):
         self.name = dfName
@@ -222,55 +222,52 @@ class dfFundsProcessor(static):
         self.fundMatrix.to_csv(newName)
 
 class matrixCollate:
-    def __init__(self,df1,df2,df1mx,df2mx):
-        self.df1 = df1
-        self.df2 = df2
-        self.df1mx = df1mx
-        self.df2mx = df2mx
-
-        if len(df1) != len(df2) or df1.size != df2.size:
-            pass
-
-        # denormalized dataframes
-        self.__df1denorm = self.__dfDenormalize(self.df1,self.df1mx)
-        self.__df2denorm = self.__dfDenormalize(self.df2,self.df2mx)
-
-        # create new dataframe
+    def __init__(self,dfs,mxs):
+        self.matrices = map(lambda x: self.__dfDenormalize(dfs[x],mxs[x]),range(0,len(dfs)))
         self.collDF = self.__collate()
-        self.rateDF = self.__rateCalc()
-
+        self.diffDF = self.__diffCalc()
 
     def __dfDenormalize(self,df,mx):
-        # normalizes dataframes
-        for i in df.columns.tolist():
-            for j in df.index.tolist():
-                df.loc[j,i] = (mx * df.loc[j,i])
-        return(df)
+        return(df*mx)
 
-    def __collatePrep(self,df):
+    def __collatePrep(self):
         # creates new empty dataframe
         newDF = pd.DataFrame(
-            index = df.index,
-            columns = df.columns
+            index = self.matrices[0].index,
+            columns = self.matrices[0].columns
         )
         return(newDF)
 
     def __collate(self):
-        newDF = self.__collatePrep(self.df1)
+        newDF = self.__collatePrep()
         for i in newDF.columns.tolist():
             for j in newDF.index.tolist():
-                vals = [self.__df1denorm.loc[j,i],self.__df2denorm.loc[j,i]]
-                newDF.loc[j,i] = vals
+                newDF.loc[j,i] = map(lambda x: self.matrices[x].loc[j,i],range(0,len(self.matrices)))
         return(newDF)
 
-    def __rateCalc(self):
-        newDF = self.__collatePrep(self.df1)
+    def __changeCalc(self,l):
+        ''' calculates net change over the data from an array.'''
+        try:
+            len(l)>=2
+        except:
+            return('the array is too short')
+
+        curr = l[0]
+        total_diff = 0
+
+        for i in range(1,len(l)):
+            if l[i] == 0:
+                continue
+            elif l[-1]==l.index(l[i]):
+                break
+            else:
+                nextNum = l[i]
+                total_diff = nextNum - curr
+        return(total_diff)
+
+    def __diff(self):
+        newDF = self.__collatePrep()
         for i in newDF.columns.tolist():
             for j in newDF.index.tolist():
-                val = self.__df2denorm.loc[j,i]/self.__df1denorm.loc[j,i]
-                newDF.loc[j,i] = vals
+                newDF.loc[j,i] = self.__changeCalc(self.collDF[j,i])
         return(newDF)
-
-class rateCalc:
-    # this will extract the ratio of funds to number of awards.
-    pass

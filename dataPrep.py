@@ -77,7 +77,7 @@ class dfAbstractProcessor(static):
         # creates column with arrays of extracted terms
         self.__df['AbstractTokens'] = map(lambda x:
             AbstractExtract(x,self.kwords).matches, self.__df['Abstract at Time of Award'])
-        reducedDF = self.__df[self.__df['AbstractTokens'].map(lambda x: len(x)>0)]
+        reducedDF = self.__df[self.__df['AbstractTokens']]#.map(lambda x: len(x)>0)]
         reducedDF.drop(["Abstract at Time of Award"],inplace=True,axis=1)
         return(reducedDF.reset_index().drop('index', axis=1))
 

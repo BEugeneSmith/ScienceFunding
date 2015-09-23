@@ -8,7 +8,7 @@ class static:
     notContUS = ["GU","PR","FM","AS","VI","AK","HI",'AE']
 
     kwords = [
-            # default values
+            ''' default values '''
            'microbiology', 'botany', 'mycology', 'fungus', 'fungi',
             'microbe', 'microbes','biosystems', 'biosystem', 'rhizobia',
             'mycorrhizae', 'mycorrhizal', 'microbiome', #'mycobiome',
@@ -18,14 +18,14 @@ class static:
            ]
 
     def __init__(self):
-        # assigns and sorts either the new keyword set or keeps the old one
+        ''' assigns and sorts either the new keyword set or keeps the old one '''
         # userTerms = self.__userInput()
         # if userTerms != []:
         #    self.kwords = userTerms
         self.kwords = sorted(self.kwords)
 
     def __userInput(self):
-        # optionally takes user selected keword terms
+        ''' optionally takes user selected keword terms '''
         # print 'Enter the terms you want to search for, or just press return for default terms.'
         arr = []
         term = raw_input()
@@ -36,7 +36,6 @@ class static:
             term = raw_input()
         return(arr)
 
-    #we can probably put in something to bin data here
 
 class AbstractExtract(static):
     def __init__(self,abstract,kwords):
@@ -46,7 +45,7 @@ class AbstractExtract(static):
         self.matches = self.__tokenMatch()
 
     def __tokenize(self):
-        # splits abstract into discrete words
+        ''' splits abstract into discrete words '''
         try:
             abNums = re.sub('\d','',self.abstract)
             abLower = abNums.lower()
@@ -57,7 +56,7 @@ class AbstractExtract(static):
         return(tokens)
 
     def __tokenMatch(self):
-        # finds term matches inside abstract
+        ''' finds term matches inside abstract '''
         matches = []
         for term in self.kwords:
             if term in self.tokens:
@@ -77,7 +76,7 @@ class dfAbstractProcessor(static):
         self.normDF = self.__valueNormalize()
 
     def __process(self):
-        # creates column with arrays of extracted terms
+        ''' creates column with arrays of extracted terms '''
         self.__df['AbstractTokens'] = map(lambda x:
             AbstractExtract(x,self.kwords).matches, self.__df['Abstract at Time of Award'])
         reducedDF = self.__df[self.__df['AbstractTokens'].map(lambda x: len(x)>0)]
@@ -85,7 +84,7 @@ class dfAbstractProcessor(static):
         return(reducedDF.reset_index().drop('index', axis=1))
 
     def __stateFreq(self):
-        # makes dictonary for how many awards each state won
+        ''' makes dictonary for how many awards each state won '''
         stateFreqTable = {}
         for state in self.__cleanDF['Primary State']:
             if state in self.notContUS:
@@ -100,7 +99,7 @@ class dfAbstractProcessor(static):
         return(stateFreqTable)
 
     def __transformPrep(self):
-        # acts on existing self.__cleanDF to add term counts
+        ''' acts on existing self.__cleanDF to add term counts '''
         for kword in self.kwords: self.__cleanDF[kword] = 0
         for i in self.__cleanDF.index:
             for term in self.__cleanDF.loc[i,"AbstractTokens"]:
@@ -108,7 +107,7 @@ class dfAbstractProcessor(static):
                 self.__cleanDF.loc[i,term]+=1
 
     def __transform(self):
-        # subset the dataframe to make matrix of counts
+        ''' subset the dataframe to make matrix of counts '''
         matrix = self.__cleanDF.drop(['Year','AbstractTokens','Estimated Total Award Amount'],1)
         matrix = matrix.groupby("Primary State").sum()
         for x in self.notContUS:
@@ -120,7 +119,7 @@ class dfAbstractProcessor(static):
         return(matrix.T)
 
     def __maxExtract(self):
-        # extracts maximum value from dataframe
+        ''' extracts maximum value from dataframe '''
         totals = []
         for i in self.transDF.index:
             for j in self.transDF.columns:
@@ -130,7 +129,7 @@ class dfAbstractProcessor(static):
         return(maxVal)
 
     def __valueNormalize(self):
-        # normalize values in a given array
+        ''' normalize values in a given array '''
         mx = self.abstractMax
         matrix = self.transDF
 
@@ -140,7 +139,7 @@ class dfAbstractProcessor(static):
         return(matrix)
 
     def exportMatrix(self):
-        # exports matrix of term counts
+        ''' exports matrix of term counts '''
         abspath = os.path.abspath(self.name)
         filename = re.search('/(\w*\.csv)$',abspath)
         newName = 'awardMatrices/'+filename.group(1)
@@ -163,7 +162,7 @@ class dfFundProcessor(static):
         self.__valueNormalize()
 
     def __process(self):
-        # creates column with arrays of extracted terms
+        ''' creates column with arrays of extracted terms '''
         self.__df['AbstractTokens'] = map(lambda x:
             AbstractExtract(x,self.kwords).matches, self.__df['Abstract at Time of Award'])
         reducedDF = self.__df[self.__df['AbstractTokens'].map(lambda x: len(x)>0)]
@@ -171,7 +170,7 @@ class dfFundProcessor(static):
         return(reducedDF.reset_index().drop('index', axis=1))
 
     def __fundMatrixPrep(self):
-        # acts on existing self.__cleanDF to add term counts
+        ''' acts on existing self.__cleanDF to add term counts '''
         for kword in self.kwords: self.__cleanDF[kword] = 0
         for i in self.__cleanDF.index:
             for term in self.__cleanDF.loc[i,"AbstractTokens"]:
@@ -179,7 +178,7 @@ class dfFundProcessor(static):
                 self.__cleanDF.loc[i,term]+=self.__cleanDF.loc[i,'Estimated Total Award Amount']
 
     def __fundMatrixTransform(self):
-        # subset the dataframe to make matrix of counts
+        ''' subset the dataframe to make matrix of counts '''
         matrix = self.__cleanDF.drop(['Year','AbstractTokens','Estimated Total Award Amount'],1)
         matrix = matrix.groupby("Primary State").sum()
         for x in self.notContUS:
@@ -191,7 +190,7 @@ class dfFundProcessor(static):
         return(matrix.T)
 
     def __maxExtract(self):
-        # extracts maximum value from dataframe
+        ''' extracts maximum value from dataframe '''
         totals = []
         for i in self.fundMatrix.index:
             for j in self.fundMatrix.columns:
@@ -201,7 +200,7 @@ class dfFundProcessor(static):
         return(maxVal)
 
     def __valueNormalize(self):
-        # normalize values in a given array
+        ''' normalize values in a given array '''
         mx = self.fundMax
         matrix = self.fundMatrix
 
@@ -211,7 +210,7 @@ class dfFundProcessor(static):
 
 
     def exportMatrix(self):
-        # exports matrix of term counts
+        ''' exports matrix of term counts '''
         abspath = os.path.abspath(self.name)
         filename = re.search('/(\w*\.csv)$',abspath)
         newName = 'fundMatrices/'+filename.group(1)
@@ -231,7 +230,7 @@ class matrixCollate:
         return(df*mx)
 
     def __collatePrep(self):
-        # creates new empty dataframe
+        ''' creates new empty dataframe '''
         newDF = pd.DataFrame(
             index = self.matrices[0].index,
             columns = self.matrices[0].columns

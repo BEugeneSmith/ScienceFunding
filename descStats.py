@@ -8,7 +8,6 @@ class static:
     notContUS = ["GU","PR","FM","AS","VI","AK","HI",'AE']
 
     kwords = [
-            ''' default values '''
            'microbiology', 'botany', 'mycology', 'fungus', 'fungi',
             'microbe', 'microbes','biosystems', 'biosystem', 'rhizobia',
             'mycorrhizae', 'mycorrhizal', 'microbiome', #'mycobiome',

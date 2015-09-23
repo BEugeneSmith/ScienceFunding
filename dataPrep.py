@@ -5,10 +5,8 @@ import os
 class static:
 
     notContUS = ["GU","PR","FM","AS","VI","AK","HI",'AE']
-
     kwords = [
-            ''' default values '''
-           'microbiology', 'botany', 'mycology', 'fungus', 'fungi',
+            'microbiology', 'botany', 'mycology', 'fungus', 'fungi',
             'microbe', 'microbes','biosystems', 'biosystem', 'rhizobia',
             'mycorrhizae', 'mycorrhizal', 'microbiome', #'mycobiome',
             'phytopathology', 'pathology','dna','evolution', 'genetics',
@@ -18,9 +16,9 @@ class static:
 
     def __init__(self):
         ''' assigns and sorts either the new keyword set or keeps the old one '''
-        userTerms = self.__userInput()
-        if userTerms != []:
-            self.kwords = userTerms
+        # userTerms = self.__userInput()
+        # if userTerms != []:
+        #     self.kwords = userTerms
         self.kwords = sorted(self.kwords)
 
     def __userInput(self):
@@ -174,4 +172,3 @@ class dfFundsProcessor(static):
             os.makedirs('fundMatrices/')
 
         self.fundMatrix.to_csv(newName)
-pyth

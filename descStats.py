@@ -148,7 +148,7 @@ class dfAbstractProcessor(static):
 
         self.transDF.to_csv(newName)
 
-class dfFundProcessor(static):
+class dfFundsProcessor(static):
 
     def __init__(self,dfName):
         self.name = dfName
